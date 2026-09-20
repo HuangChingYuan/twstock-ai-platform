@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台股 AI Dashboard</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #111827;
+      border-bottom: 1px solid #1f2937;
+    }
+    header h1 { font-size: 16px; margin: 0; }
+    nav { display: flex; gap: 8px; }
+    nav button {
+      background: #1f2937;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    nav button.active { background: #2563eb; border-color: #2563eb; }
+    main { flex: 1; position: relative; }
+    iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: none;
+      background: #0f172a;
+    }
+    iframe.active { display: block; }
+    /* 修改成你實際部署的網址 */
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 台股 AI Dashboard</h1>
+    <nav>
+      <button id="btn-dashboard" class="active">Dashboard</button>
+      <button id="btn-ai-demo">AI Demo</button>
+    </nav>
+  </header>
+  <main>
+    <!-- Render 上的 NiceGUI 正式 Dashboard -->
+    <iframe id="frame-dashboard" class="active"
+            src="https://twstock-dashboard.onrender.com"
+            title="Dashboard"></iframe>
+    <!-- Hugging Face Spaces 上的 Gradio AI Demo -->
+    <iframe id="frame-ai-demo"
+            src="https://your-hf-username-twstock-ai-demo.hf.space"
+            title="AI Demo"></iframe>
+  </main>
+
+  <script>
+    const tabs = {
+      "btn-dashboard": "frame-dashboard",
+      "btn-ai-demo": "frame-ai-demo",
+    };
+    Object.entries(tabs).forEach(([btnId, frameId]) => {
+      document.getElementById(btnId).addEventListener("click", () => {
+        Object.values(tabs).forEach((f) => document.getElementById(f).classList.remove("active"));
+        Object.keys(tabs).forEach((b) => document.getElementById(b).classList.remove("active"));
+        document.getElementById(frameId).classList.add("active");
+        document.getElementById(btnId).classList.add("active");
+      });
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js").catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>

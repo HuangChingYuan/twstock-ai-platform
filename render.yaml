@@ -1,0 +1,56 @@
+# Render 部署設定 (Slide 14)
+# 部署 FastAPI (資料/計分/LLM/回測 API) + NiceGUI Dashboard 兩個 Web Service，
+# 並使用 Render 或 Supabase 的 PostgreSQL 作為正式資料庫。
+#
+# 使用方式：在 Render Dashboard 選擇 "New +" → "Blueprint"，指向本 repo 即可。
+
+databases:
+  - name: twstock-db
+    plan: free
+    databaseName: twstock
+    user: twstock
+
+services:
+  # --- FastAPI：資料擷取 / 技術指標 / 基本面 / LLM / 回測 / Telegram ---
+  - type: web
+    name: twstock-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: twstock-db
+          property: connectionString
+      - key: FINMIND_TOKEN
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-6
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+
+  # --- NiceGUI：正式 Dashboard (Slide 12) ---
+  - type: web
+    name: twstock-dashboard
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.dashboard.nicegui_app
+    envVars:
+      - key: API_BASE_URL
+        fromService:
+          name: twstock-api
+          type: web
+          property: hostport
+        # Render 會注入 host:port，實務上建議直接手動填 twstock-api 的完整 https URL
+      - key: DATABASE_URL
+        fromDatabase:
+          name: twstock-db
+          property: connectionString

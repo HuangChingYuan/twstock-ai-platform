@@ -1,0 +1,19 @@
+# Hugging Face Spaces 部署 (Slide 14) — 執行 Gradio AI Demo
+# 使用方式：把此檔改名為 Dockerfile 放進 HF Space repo 根目錄 (Space SDK 選 "Docker")。
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# HF Spaces 預設對外開 7860 port
+ENV PORT=7860
+EXPOSE 7860
+
+# HF Spaces 上通常不需要正式 PostgreSQL，預設走 SQLite 也能完整展示 Demo 流程
+ENV DATABASE_URL=sqlite:///./twstock.db
+
+CMD ["python", "-m", "app.ai_demo.gradio_app"]
